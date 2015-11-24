@@ -1351,9 +1351,19 @@ namespace System.Linq.Dynamic
             }
 
             MethodBase method;
-            // first check the left operand type itself if it implements operators
-            if (FindMethod(left.Type, operatorReflectionMethodName, true, args, out method) == 1
-                || FindMethod(signatures, "F", false, args, out method) == 1)
+
+            // first check the left operand type itself if it implements relational operators
+            if (operatorReflectionMethodName != null)
+            {
+                if (FindMethod(left.Type, operatorReflectionMethodName, true, args, out method) == 1)
+                {
+                    left = args[0];
+                    right = args[1];
+                    return;
+                }
+            }
+
+            if (FindMethod(signatures, "F", false, args, out method) == 1)
             {
                 left = args[0];
                 right = args[1];
