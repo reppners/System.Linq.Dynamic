@@ -253,5 +253,18 @@ namespace System.Linq.Dynamic.Tests
             Assert.AreEqual(realSingleResult, testSingleResult);
             Assert.AreEqual(realSingleFailResult, testSingleFailResult);
         }
+
+        [TestMethod]
+        public void ExpressionTests_CustomTypeOperators()
+        {
+            //Arrange
+            var testList = User.GenerateSampleModels(100);
+
+            var testListQry = testList.AsQueryable();
+
+            var result= testListQry.Where("LastLogin <= @0", new[] {new UtcDateTime(DateTime.UtcNow)});
+
+            Assert.IsTrue(result.Count() == 1);
+        }
     }
 }

@@ -1325,11 +1325,42 @@ namespace System.Linq.Dynamic
         void CheckAndPromoteOperands(Type signatures, string opName, ref Expression left, ref Expression right, int errorPos)
         {
             Expression[] args = new Expression[] { left, right };
+
+            String operatorReflectionMethodName = null;
+
+            switch (opName)
+            {
+                case "==":
+                    operatorReflectionMethodName = "op_Equality";
+                    break;
+                case "!=":
+                    operatorReflectionMethodName = "op_Inequality";
+                    break;
+                case "<":
+                    operatorReflectionMethodName = "op_LessThan";
+                    break;
+                case "<=":
+                    operatorReflectionMethodName = "op_LessThanOrEqual";
+                    break;
+                case ">":
+                    operatorReflectionMethodName = "op_GreaterThan";
+                    break;
+                case ">=":
+                    operatorReflectionMethodName = "op_GreaterThanOrEqual";
+                    break;
+            }
+
             MethodBase method;
-            if (FindMethod(signatures, "F", false, args, out method) != 1)
-                throw IncompatibleOperandsError(opName, left, right, errorPos);
-            left = args[0];
-            right = args[1];
+            // first check the left operand type itself if it implements operators
+            if (FindMethod(left.Type, operatorReflectionMethodName, true, args, out method) == 1
+                || FindMethod(signatures, "F", false, args, out method) == 1)
+            {
+                left = args[0];
+                right = args[1];
+                return;
+            }
+            
+            throw IncompatibleOperandsError(opName, left, right, errorPos);
         }
 
         static Exception IncompatibleOperandsError(string opName, Expression left, Expression right, int pos)
