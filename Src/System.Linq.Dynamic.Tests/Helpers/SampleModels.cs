@@ -6,8 +6,17 @@ using System.Text;
 
 namespace System.Linq.Dynamic.Tests.Helpers
 {
+    public enum UserGroup : byte
+    {
+        NONE,
+        MEMBER,
+        ADMIN,
+    }
+
     public class User
     {
+        public UserGroup Group { get; set; }
+
         public Guid Id { get; set; }
 
         public string UserName { get; set; }
@@ -34,7 +43,8 @@ namespace System.Linq.Dynamic.Tests.Helpers
                     Id = Guid.NewGuid(),
                     UserName = "User" + i.ToString(),
                     Income = ((i) % 15) * 100,
-                    LastLogin = new UtcDateTime(lastloginDate.AddMinutes(i))
+                    LastLogin = new UtcDateTime(lastloginDate.AddMinutes(i)),
+                    Group = (UserGroup)((i) % 3)
                 };
 
                 if (!allowNullableProfiles || (i % 8) != 5)

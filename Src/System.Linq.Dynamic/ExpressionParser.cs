@@ -431,6 +431,24 @@ namespace System.Linq.Dynamic
                     if (FindMethod(typeof(IEnumerableSignatures), "Contains", false, args, out containsSignature) != 1)
                         throw ParseError(op.pos, Res.NoApplicableAggregate, "Contains");
 
+                    // when left is an enum check if the enumerable element type matches
+                    if (left.Type.IsEnum)
+                    {
+                        var elementType = right.Type.GetElementType();
+
+                        // types differ
+                        if (left.Type != elementType)
+                        {
+                            var underlyingType = Enum.GetUnderlyingType(left.Type);
+
+                            // types are not compatible, apply conversion expression
+                            if (underlyingType != elementType)
+                            {
+                                left = Expression.Convert(left, elementType);
+                            }
+                        }
+                    }
+
                     var typeArgs = new Type[] { left.Type };
                     args = new Expression[] { right, left };
 
@@ -444,6 +462,8 @@ namespace System.Linq.Dynamic
 
             return accumulate;
         }
+
+        
 
         // &, | bitwise operators
         Expression ParseLogicalAndOr()
@@ -1126,6 +1146,18 @@ namespace System.Linq.Dynamic
             _it = outerIt;
             _parent = oldParent;
 
+            // when arg is an enum convert the underlying type to the element type
+            if (args.Length > 0 && args[0].Type.IsEnum)
+            {
+                var type = Enum.GetUnderlyingType(args[0].Type);
+
+                // types are not compatible, apply conversion expression
+                if (type != elementType)
+                {
+                    args[0] = Expression.Convert(args[0], elementType);
+                }
+            }
+
             MethodBase signature;
             if (FindMethod(typeof(IEnumerableSignatures), methodName, false, args, out signature) != 1)
                 throw ParseError(errorPos, Res.NoApplicableAggregate, methodName);
@@ -1539,7 +1571,13 @@ namespace System.Linq.Dynamic
                                 break;
                         }
                         if (value != null)
+                        {
+                            if (type.IsEnum && value.GetType() != type)
+                            {
+                                value = Enum.ToObject(type, value);
+                            }
                             return Expression.Constant(value, type);
+                        }
                     }
                 }
             }

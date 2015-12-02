@@ -91,6 +91,44 @@ namespace System.Linq.Dynamic.Tests
         }
 
         [TestMethod]
+        public void ExpressionTests_EnumMemberWithDifferentUnderlyingType()
+        {
+            //Arrange
+            var userList = User.GenerateSampleModels(10, false);
+            var userQry = userList.AsQueryable();
+
+            var result = userQry.Where("Group = @0", UserGroup.ADMIN);
+            Assert.IsTrue(result.Any());
+
+            var result2 = userQry.Where("Group = \"ADMIN\"");
+            Assert.IsTrue(result2.Any());
+
+            var result3 = userQry.Where("Group in @0", new []{UserGroup.ADMIN, UserGroup.MEMBER});
+            Assert.IsTrue(result3.Any());
+
+            var result4 = userQry.Where("Group in @0", new[] { 0, 1 });
+            Assert.IsTrue(result4.Any());
+
+            var result5 = userQry.Where("@0.Contains(Group)", new[] { 0, 1 });
+            Assert.IsTrue(result5.Any());
+
+            var result6 = userQry.Where("Group = 1");
+            Assert.IsTrue(result6.Any());
+
+            var result7 = userQry.Where("Group < 1");
+            Assert.IsTrue(result7.Any());
+
+            var result8 = userQry.Where("Group != 1");
+            Assert.IsTrue(result8.Any());
+
+            var result9 = userQry.Where("Group > 1");
+            Assert.IsTrue(result9.Any());
+
+            var result10 = userQry.Where("Group = @0", 1);
+            Assert.IsTrue(result10.Any());
+        }
+
+        [TestMethod]
         public void ExpressionTests_CompareWithGuid()
         {
             //Arrange
